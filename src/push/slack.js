@@ -1,12 +1,12 @@
 
 const request = require('request');
 const config = require('../config');
-const schnackEvents = require('../events');
+const events = require('../events');
 
 const notify = config.get('notify');
 
 if (notify.slack) {
-    schnackEvents.on('new-comment', (event) => {
+    events.on('new-comment', (event) => {
         try {
             const post_url = config.get('page_url').replace('%SLUG%', event.slug)+'#comment-'+event.id;
             const comment = event.comment.split(/\n+/).map(s => s ? `> _${s}_` : '>').join('\n>\n');

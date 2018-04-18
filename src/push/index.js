@@ -11,7 +11,7 @@ const {
 } = require('../helper');
 const config = require('../config');
 const notify = config.get('notify');
-const schnack_host = config.get('schnack_host');
+const host = config.get('schnack_host');
 
 function init(app, db, awaiting_moderation) {
     // push notification apps
@@ -29,7 +29,7 @@ function init(app, db, awaiting_moderation) {
 
     if (notify.webpush) {
         webpush.setVapidDetails(
-            schnack_host,
+            host,
             notify.webpush.vapid_public_key,
             notify.webpush.vapid_private_key
         );
@@ -46,7 +46,7 @@ function init(app, db, awaiting_moderation) {
                     }
                 };
                 webpush.sendNotification(subscription, JSON.stringify({
-                    title: 'schnack',
+                    title: 'comments',
                     message: msg.message,
                     clickTarget: msg.url
                 }));
@@ -85,7 +85,7 @@ function init(app, db, awaiting_moderation) {
     app.use('/client.js', send_file('build/client.js'));
     app.use('/push.js', send_string(fs.readFileSync('src/embed/push.js', 'utf-8')
         .replace('%VAPID_PUBLIC_KEY%', notify.webpush.vapid_public_key)
-        .replace('%SCHNACK_HOST%', schnack_host), true));
+        .replace('%HOST%', host), true));
 
    // push notifications
    app.post('/subscribe', (request, reply) => {
@@ -110,4 +110,3 @@ function init(app, db, awaiting_moderation) {
 module.exports = {
     init
 };
-

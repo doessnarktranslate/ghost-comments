@@ -1,0 +1,91 @@
+<div class="comments-ui">
+<% if (data.user) { %>
+    <!-- Admin acions -->
+    <% if (data.user.admin) { %>
+        <div class="admin-settings" style="display:none;">
+            <button class="btn btn-action admin-action" data-target="notification" data-class="setting" data-action="true">un</button>
+            <button class="btn btn-action admin-action" data-target="notification" data-class="setting" data-action="false">mute notifications</button>
+        </div>
+    <% } %>
+    <!-- User / Authentication -->
+    <div class="login-status">
+        <!-- Modal dialog to allow user to change display name -->
+        <div id="commentDisplayNameChangeModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="inputCommentDisplayName">Update the display name on your comments:</label>
+                                <input type="text" class="form-control updated-name" id="inputCommentDisplayName" aria-describedby="displayNameHelp" value="<%= data.user.display_name %>">
+                                <small id="displayNameHelp" class="form-text text-muted">
+                                Please choose a name to display with your comments. To protect our users, we allow you to use a name different 
+                                than the real name returned by your authorization service provider. Names should be 3 to 30 characters long, 
+                                family-friendly and unique. 
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="btn button" class="btn btn-primary btn-update-name" data-dismiss="modal" id="updateDisplayName">OK</button>
+                        <button type="btn button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="alertUpdateNameFailure" class="alert alert-danger" style="display:none" role="alert">
+            <span>Please select a different display name.</span>
+        </div>
+
+        <!-- User display -->
+        <span class="commenting-as-label">Commenting as: </span><span class="user"><%= data.user.display_name %></span>
+            <span class="user-options" style="float:right">
+                <a class="update-name" data-toggle="modal" data-target="#commentDisplayNameChangeModal" href="#">change name</a> | <a class="signout" href="#">sign out</a>
+            </span>
+    </div>
+    
+    <div class="comment-entry">
+        <div class="comment-form">
+            <textarea rows="6" class="post-body" placeholder="enter your comment here..."></textarea>
+            <div class="post-preview">
+                <div class="post-preview-body" style="display:none"></div>
+            </div>
+            <button class="btn btn-primary btn-post-comment">Post Comment</button>
+            <button class="btn btn-default btn-preview" style="display:none">Preview</button>
+            <button class="btn btn-default btn-edit" style="display:none">Edit</button>
+            <button class="btn btn-default btn-cancel" style="display:none">Cancel</button>
+            <span class="comment-formatting-help"><a href="/comment-formatting/" target="_blank">formatting comments</a></span>
+        </div>
+    </div>
+<% } else { %>
+    <!-- No user / authentication -->
+    <div class="signin">
+        <span class="signin-text">Sign in <span class="hidden-sm hidden-xs">with one of the following </span>to comment: </span>
+        <div class="signin-providers">
+            <% data.auth.forEach((provider, i) => {  %>
+                <button class="signin-provider signin-<%= provider.id %>" title="<%= provider.name %>"><i class="icon signin-icon-<%= provider.id %>"></i></button>
+            <% }) %>
+        </div>
+    </div>
+</div>                        
+<% } %>
+                    
+<%
+   const comments = [];
+   data.replies = {};
+   data.comments.forEach((comment) => {
+        if (comment.reply_to) {
+            if (!data.replies[comment.reply_to]) data.replies[comment.reply_to] = [];
+            data.replies[comment.reply_to].push(comment);
+        } else {
+            comments.push(comment);
+        }
+    });
+    data.comments = comments;
+%>
+<%= data.comments_template(data) %>
+<!-- IMPORTANT - disables click handling on children of buttons -->
+<style type="text/css">
+    .btn-action > * { pointer-events: none; }
+</style>

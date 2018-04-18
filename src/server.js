@@ -12,7 +12,7 @@ const dbHandler = require('./db');
 const queries = require('./db/queries');
 const auth = require('./auth');
 const pushHandler = require('./push');
-const schnackEvents = require('./events');
+const commentEvents = require('./events');
 const {
     error,
     getUser,
@@ -26,7 +26,9 @@ const config = require('./config');
 
 const awaiting_moderation = [];
 
-marked.setOptions({ sanitize: true });
+marked.setOptions({
+    sanitize: true
+});
 
 dbHandler.init()
     .then(db => run(db))
@@ -39,14 +41,101 @@ function run(db) {
     }));
 
     app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(bodyParser.urlencoded({
+        extended: true
+    }));
 
     // init session + passport middleware and auth routes
     auth.init(app, db, getSchnackDomain());
     pushHandler.init(app, db, awaiting_moderation);
 
+    app.put('/user/name', (request, reply) => {
+        const {
+            name
+        } = request.body;
+
+        var invalidNameLength = false,
+            invalidNameTaken = false;
+
+        var user = getUser(request);
+        if (!user) return error('access denied', request, reply, 403);
+
+        // check if name is too short
+        if (name.length < 3 || name.length > 30) {
+            invalidNameLength = true;
+        }
+
+        // check if name is already in use
+        db.get(queries.find_display_name, [name.toLowerCase()], (err, row) => {
+            if (error(err, request, reply)) return;
+
+            if (row) {
+                invalidNameTaken = true;
+            }
+        });
+
+        if (invalidNameLength) {
+            reply.send({
+                status: 'fail',
+                reason: 'name too short or too long'
+            });
+        } else if (invalidNameTaken) {
+            reply.send({
+                status: 'fail',
+                reason: 'name taken'
+            });
+        } else {
+            let args = [name, user.id];
+            db.run(queries.update_name, args, (err) => {
+                if (error(err, request, reply)) return;
+
+                user.display_name = name;
+
+                reply.send({
+                    status: 'ok'
+                });
+            });
+        }
+
+    });
+
+    app.delete('/comment/:id', (request, reply) => {
+        const {
+            id
+        } = request.params;
+        const user = getUser(request);
+        if (!isAdmin(user)) return reply.status(403).send(request.params);
+
+        let query = queries.remove;
+        db.run(query, id, id, (err) => {
+            if (error(err, request, reply)) return;
+            reply.send({
+                status: 'ok'
+            });
+        });
+    });
+
     app.get('/comments/:slug', (request, reply) => {
-        const { slug } = request.params;
+        const { 
+            slug
+        } = request.params;
+
+        // check header for X-Total-Count header in request. If included, 
+        // only return the count of comments.
+        if (request.get('x-total-count') != undefined) {
+            let query = queries.get_comments_count;
+            let args = [slug];
+            var c = -1;
+
+            db.all(query, args, (err, row) => {
+                if (error(err, request, reply)) return;
+                reply.send({
+                    slug: slug,
+                    count: row[0].count
+                });
+            });
+        } else {
+
         const user = getUser(request);
         const providers = user ? null : auth.providers;
 
@@ -68,32 +157,56 @@ function run(db) {
                 c.comment = marked(c.comment.trim());
                 c.author_url = auth.getAuthorUrl(c);
             });
-            reply.send({ user, auth: providers, slug, comments });
+                reply.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+                reply.setHeader("Pragma", "no-cache");
+                reply.setHeader("Expires", 0);
+                reply.send({
+                    user,
+                    auth: providers,
+                    slug,
+                    comments
+                });
         });
+        }
     });
 
     app.get('/signout', (request, reply) => {
         delete request.session.passport;
-        reply.send({ status: 'ok' });
+        reply.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.setHeader("Pragma", "no-cache");
+        reply.setHeader("Expires", 0);
+        reply.send({
+            status: 'ok'
+        });
     });
 
     // POST new comment
     app.post('/comments/:slug', (request, reply) => {
-        const { slug } = request.params;
-        const { comment, replyTo } = request.body;
+        const { 
+            slug 
+        } = request.params;
+        const {
+            comment,
+            replyTo
+        } = request.body;
         const user = getUser(request);
 
         if (!user) return error('access denied', request, reply, 403);
         checkValidComment(db, slug, user.id, comment, replyTo, (err) => {
-            if (err) return reply.send({ status: 'rejected', reason: err });
+            if (err) return reply.send({
+                status: 'rejected',
+                reason: err
+            });
             let stmt = db
             .prepare(queries.insert, [user.id, slug, comment, replyTo ? +replyTo : null])
             .run(err => {
                 if (err) return error(err, request, reply);
                 if (!user.blocked && !user.trusted) {
-                    awaiting_moderation.push({slug});
+                        awaiting_moderation.push({
+                            slug
+                        });
                 }
-                schnackEvents.emit('new-comment', { user: user, slug, id: stmt.lastID, comment, replyTo });
+                commentEvents.emit('new-comment', { user: user, slug, id: stmt.lastID, comment, replyTo });
                 reply.send({ status: 'ok', id: stmt.lastID });
             });
         });
@@ -107,7 +220,9 @@ function run(db) {
         const target_id = +(request.params[0] || request.params[2]);
         db.run(queries[action], target_id, (err) => {
             if (error(err, request, reply)) return;
-            reply.send({ status: 'ok' });
+            reply.send({
+                status: 'ok'
+            });
         });
     });
 
@@ -115,12 +230,14 @@ function run(db) {
         const schnackDomain = getSchnackDomain();
         reply.send(`<script>
             document.domain = '${schnackDomain}';
-            window.opener.__schnack_wait_for_oauth();
+            window.opener.__wait_for_oauth();
         </script>`);
     });
 
     app.get('/', (request, reply) => {
-        reply.send({test: 'ok' });
+        reply.send({
+            test: 'ok'
+        });
     });
 
     // rss feed of comments in need of moderation
@@ -139,25 +256,36 @@ function run(db) {
                 date: row.created_at
             });
         }, (err) => {
-            reply.send(feed.xml({indent: true}));
+            reply.send(feed.xml({
+                indent: true
+            }));
         });
     });
 
     // for markdown preview
     app.post('/markdown', (request, reply) => {
-        const { comment } = request.body;
-        reply.send({ html: marked(comment.trim()) });
+        const {
+            comment
+        } = request.body;
+        reply.send({
+            html: marked(comment.trim())
+        });
     });
 
     // settings
     app.post('/setting/:property/:value', (request, reply) => {
-        const { property, value } = request.params;
+        const {
+            property,
+            value
+        } = request.params;
         const user = getUser(request);
         if (!isAdmin(user)) return reply.status(403).send(request.params);
         const setting = value ? 1 : 0;
         db.run(queries.set_settings, [property, setting], (err) => {
             if (error(err, request, reply)) return;
-            reply.send({ status: 'ok' });
+            reply.send({
+                status: 'ok'
+            });
         });
     });
 

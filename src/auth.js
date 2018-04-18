@@ -5,12 +5,14 @@ const TwitterStrategy = require('passport-twitter').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
+const YahooStrategy = require('passport-yahoo-oauth').Strategy;
+const AmazonStrategy = require('passport-amazon').Strategy;
 
 const queries = require('./db/queries');
 const config = require('./config');
 const authConfig = config.get('oauth');
 const trustConfig = config.get('trust');
-const schnack_host = config.get('schnack_host');
+const host = config.get('schnack_host');
 
 const providers = [];
 
@@ -58,7 +60,7 @@ function init(app, db, domain) {
         passport.use(new TwitterStrategy({
             consumerKey: authConfig.twitter.consumer_key,
             consumerSecret: authConfig.twitter.consumer_secret,
-            callbackURL: `${schnack_host}/auth/twitter/callback`
+            callbackURL: `${host}/auth/twitter/callback`
         }, (token, tokenSecret, profile, done) => {
             done(null, profile);
         }));
@@ -76,39 +78,13 @@ function init(app, db, domain) {
         );
     }
 
-    // github auth
-    if (authConfig.github) {
-        providers.push({ id: 'github', name: 'Github' });
-        passport.use(new GitHubStrategy({
-            clientID: authConfig.github.client_id,
-            clientSecret: authConfig.github.client_secret,
-            callbackURL: `${schnack_host}/auth/github/callback`
-        }, (accessToken, refreshToken, profile, done) => {
-            done(null, profile);
-        }));
-
-        app.get('/auth/github',
-            passport.authenticate('github', {
-                scope: ['user:email']
-            })
-        );
-
-        app.get('/auth/github/callback',
-            passport.authenticate('github', {
-                failureRedirect: '/login'
-            }), (request, reply) => {
-                reply.redirect('/success');
-            }
-        );
-    }
-
     // google oauth
     if (authConfig.google) {
         providers.push({ id: 'google', name: 'Google' });
         passport.use(new GoogleStrategy({
             clientID: authConfig.google.client_id,
             clientSecret: authConfig.google.client_secret,
-            callbackURL: `${schnack_host}/auth/google/callback`
+            callbackURL: `${host}/auth/google/callback`
         }, (accessToken, refreshToken, profile, done) => {
             done(null, profile);
         }));
@@ -128,13 +104,41 @@ function init(app, db, domain) {
         );
     }
 
+    // amazon oauth
+    if (authConfig.amazon) {
+        providers.push({
+            id: 'amazon',
+            name: 'Amazon'
+        });
+        passport.use(new AmazonStrategy({
+            clientID: authConfig.amazon.client_id,
+            clientSecret: authConfig.amazon.client_secret,
+            callbackURL: `${host}/auth/amazon/callback`,
+            scope: 'profile'
+        }, (accessToken, refreshToken, profile, done) => {
+            done(null, profile);
+        }));
+
+        app.get('/auth/amazon',
+            passport.authenticate('amazon')
+        );
+
+        app.get('/auth/amazon/callback',
+            passport.authenticate('amazon', {
+                failureRedirect: '/login'
+            }), (request, reply) => {
+                reply.redirect('/success')
+            }
+        );
+    }
+
     // facebook oauth
     if (authConfig.facebook) {
         providers.push({ id: 'facebook', name: 'Facebook' });
         passport.use(new FacebookStrategy({
             clientID: authConfig.facebook.client_id,
             clientSecret: authConfig.facebook.client_secret,
-            callbackURL: `${schnack_host}/auth/facebook/callback`
+            callbackURL: `${host}/auth/facebook/callback`
         }, (accessToken, refreshToken, profile, done) => {
               done(null, profile);
         }));
@@ -151,6 +155,60 @@ function init(app, db, domain) {
             }
         );
     }
+
+    // yahoo oauth
+    if (authConfig.yahoo) {
+        providers.push({
+            id: 'yahoo',
+            name: 'Yahoo'
+        });
+        passport.use(new YahooStrategy({
+            consumerKey: authConfig.yahoo.client_id,
+            consumerSecret: authConfig.yahoo.client_secret,
+            callbackURL: `${host}/auth/yahoo/callback`
+        }, (accessToken, refreshToken, profile, done) => {
+            done(null, profile);
+        }));
+
+        app.get('/auth/yahoo',
+            passport.authenticate('yahoo')
+        );
+
+        app.get('/auth/yahoo/callback',
+            passport.authenticate('yahoo', {
+                failureRedirect: '/login'
+            }), (request, reply) => {
+                reply.redirect('/success')
+            }
+        );
+    }
+    
+    // github auth
+    if (authConfig.github) {
+        providers.push({ id: 'github', name: 'Github' });
+        passport.use(new GitHubStrategy({
+            clientID: authConfig.github.client_id,
+            clientSecret: authConfig.github.client_secret,
+            callbackURL: `${host}/auth/github/callback`
+        }, (accessToken, refreshToken, profile, done) => {
+            done(null, profile);
+        }));
+
+        app.get('/auth/github',
+            passport.authenticate('github', {
+                scope: ['user:email']
+            })
+        );
+
+        app.get('/auth/github/callback',
+            passport.authenticate('github', {
+                failureRedirect: '/login'
+            }), (request, reply) => {
+                reply.redirect('/success');
+            }
+        );
+    }
+
 }
 
 function getAuthorUrl(comment) {

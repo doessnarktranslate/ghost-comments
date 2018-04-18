@@ -25,7 +25,9 @@ function send_string(body, admin_only) {
 function error(err, request, reply, code) {
   if (err) {
       console.error(err.message);
-      reply.status(code || 500).send({ error: err.message });
+        reply.status(code || 500).send({
+            error: err.message
+        });
 
       return true;
   }
@@ -34,8 +36,16 @@ function error(err, request, reply, code) {
 }
 
 function getUser(request) {
-    if (config.get('dev')) return { id: 1, name: 'Dev', display_name: 'Dev', admin: true, trusted: 1};
-    const { user } = request.session.passport || {};
+    if (config.get('dev')) return {
+        id: 1,
+        name: 'Dev',
+        display_name: 'Dev',
+        admin: true,
+        trusted: 1
+    };
+    const {
+        user
+    } = request.session.passport ||  {};
     return user;
 }
 
@@ -45,11 +55,11 @@ function isAdmin(user) {
 
 function checkOrigin(origin, callback) {
     // origin is allowed
-    if (typeof origin === 'undefined' || `.${url.parse(origin).hostname}`.endsWith(`.${schnack_domain}`)) {
+    if (typeof origin === 'undefined' || `.${url.parse(origin).hostname}`.endsWith(`.${schnack_domain}`) || `${url.parse(origin).hostname}` == `localhost`) {
         return callback(null, true);
     }
 
-    callback(new Error('Not allowed by CORS'));
+    callback(new Error('Not allowed by CORS: ' + `${url.parse(origin).hostname}`));
 }
 
 function checkValidComment(db, slug, user_id, comment, replyTo, callback) {

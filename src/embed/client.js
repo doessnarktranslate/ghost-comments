@@ -1,18 +1,21 @@
 import fetch from 'unfetch';
-import schnack_tpl from './schnack.jst.html';
-import comments_tpl from './comments.jst.html';
+import main_template from './main.jst.html';
+import comments_template from './comments.jst.html';
+
+//const parseurl = require('parseurl');
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
-export default class Schnack {
+export default class GhostComments {
     constructor(options) {
         this.options = options;
         this.options.endpoint = `${options.host}/comments/${options.slug}`;
         this.initialized = false;
         this.firstLoad = true;
 
-        const url = new URL(options.host)
+        var url = new URL(options.host);
+        //        const url = parseurl(options.host);
 
         if (url.hostname !== 'localhost') {
             document.domain = url.hostname.split('.').slice(1).join('.');
@@ -22,7 +25,12 @@ export default class Schnack {
     }
 
     refresh() {
-        const { target, slug, host, endpoint } = this.options;
+        const {
+            target,
+            slug,
+            host,
+            endpoint
+        } = this.options;
 
         fetch(endpoint, {
                 credentials: 'include',
@@ -32,22 +40,27 @@ export default class Schnack {
             })
             .then(r => r.json())
             .then((data) => {
-                data.comments_tpl = comments_tpl;
-                $(target).innerHTML = schnack_tpl(data);
+                data.comments_template = comments_template;
+                $(target).innerHTML = main_template(data);
 
-                const above = $(`${target} div.schnack-above`);
-                const form = $(`${target} div.schnack-form`);
-                const textarea = $(`${target} textarea.schnack-body`);
-                const preview = $(`${target} .schnack-form blockquote.schnack-body`);
+                const above = $(`${target} div.comments-ui`);
+                const form = $(`${target} div.comment-form`);
+                const textarea = $(`${target} textarea.post-body`);
+                const preview = $(`${target} .comment-form .post-preview-body`);
 
-                const draft = window.localStorage.getItem(`schnack-draft-${slug}`);
+                const draft = window.localStorage.getItem(`comment-draft-${slug}`);
                 if (draft && textarea) textarea.value = draft;
 
-                const postBtn = $(target + ' .schnack-button');
-                const previewBtn = $(target + ' .schnack-preview');
-                const writeBtn = $(target + ' .schnack-write');
-                const cancelReplyBtn = $(target + ' .schnack-cancel-reply');
-                const replyBtns = $$(target + ' .schnack-reply');
+                const postBtn = $(target + ' .btn-post-comment');
+                const previewBtn = $(target + ' .btn-preview');
+                const writeBtn = $(target + ' .btn-edit');
+                const cancelReplyBtn = $(target + ' .btn-cancel');
+                const replyBtns = $$(target + ' .btn-comment-reply');
+                const deleteBtns = $$(target + ' .btn-comment-delete');
+                const updateDisplayNameBtn = $(target + ' .btn-update-name');
+                const updateDisplayNameFail = $(target + ' #alertUpdateNameFailure');
+
+                const updatedName = $(target + ' .updated-name');
 
                 if (postBtn) {
                     postBtn.addEventListener('click', (d) => {
@@ -66,7 +79,7 @@ export default class Schnack {
                             .then(r => r.json())
                             .then((res) => {
                                 textarea.value = '';
-                                window.localStorage.setItem(`schnack-draft-${slug}`, textarea.value);
+                                window.localStorage.setItem(`comment-draft-${slug}`, textarea.value);
                                 if (res.id) {
                                     this.firstLoad = true;
                                     window.location.hash = '#comment-' + res.id;
@@ -106,7 +119,7 @@ export default class Schnack {
                     });
 
                     textarea.addEventListener('keyup', () => {
-                        window.localStorage.setItem(`schnack-draft-${slug}`, textarea.value);
+                        window.localStorage.setItem(`comment-draft-${slug}`, textarea.value);
                     });
 
                     replyBtns.forEach((btn) => {
@@ -117,14 +130,52 @@ export default class Schnack {
                         });
                     });
 
+                    updateDisplayNameBtn.addEventListener('click', () => {
+                        fetch(`${host}/user/name`, {
+                                credentials: 'include',
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    name: updatedName.value
+                                })
+                            })
+                            .then(r => r.json())
+                            .then((res) => {
+                                if (res.status == undefined || res.status != 'ok') {
+                                    var error = new Error('failed to update');
+                                    return Promise.reject(error);
+                                }
+                            })
+                            .then(() => this.refresh())
+                            .catch(e => {
+                                updateDisplayNameFail.style.display = 'block';
+                            });
+                    });
+
                     cancelReplyBtn.addEventListener('click', () => {
                         above.appendChild(form);
                         delete form.dataset.reply;
                         cancelReplyBtn.style.display = 'none';
                     });
+
+                    deleteBtns.forEach((btn) => {
+                        btn.addEventListener('click', () => {
+                            const commentId = btn.dataset.commentId;
+                            fetch(`${host}/comment/` + commentId, {
+                                    credentials: 'include',
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
+                                })
+                                .then(() => this.refresh());
+                        });
+                    });
                 }
                 if (data.user) {
-                    const signout = $('a.schnack-signout');
+                    const signout = $('a.signout');
                     if (signout) signout.addEventListener('click', (e) => {
                         e.preventDefault();
                         fetch(`${host}/signout`, {
@@ -137,12 +188,12 @@ export default class Schnack {
                     });
                 } else {
                     data.auth.forEach((provider) => {
-                        const btn = $(target + ' .schnack-signin-' + provider.id);
+                        const btn = $(target + ' .signin-' + provider.id);
                         if (btn) btn.addEventListener('click', (d) => {
                             let windowRef = window.open(
                                 `${host}/auth/${provider.id}`, provider.name + ' Sign-In', 'resizable,scrollbars,status,width=600,height=500'
                             );
-                            window.__schnack_wait_for_oauth = () => {
+                            window.__wait_for_oauth = () => {
                                 windowRef.close();
                                 this.refresh();
                             };
@@ -171,7 +222,7 @@ export default class Schnack {
                             })
                             .then(() => this.refresh());
                     };
-                    document.querySelectorAll('.schnack-action').forEach((btn) => {
+                    document.querySelectorAll('.btn-action').forEach((btn) => {
                         btn.addEventListener('click', action);
                     });
                 }
@@ -179,7 +230,7 @@ export default class Schnack {
                 if (this.firstLoad && window.location.hash.match(/^#comment-\d+$/)) {
                     const hl = document.querySelector(window.location.hash);
                     hl.scrollIntoView();
-                    hl.classList.add('schnack-highlight');
+                    hl.classList.add('highlight');
                     this.firstLoad = false;
                 }
             });

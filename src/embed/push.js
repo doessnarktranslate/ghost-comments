@@ -1,6 +1,6 @@
 //Vapid public key.
 const applicationServerPublicKey = '%VAPID_PUBLIC_KEY%';
-const schnack_host = '%SCHNACK_HOST%';
+const host = '%HOST%';
 
 const serviceWorkerName =  '/sw.js';
 
@@ -114,7 +114,7 @@ function sendSubscriptionToServer(endpoint, key, auth) {
     const encodedKey = btoa(String.fromCharCode.apply(null, new Uint8Array(key)));
     const encodedAuth = btoa(String.fromCharCode.apply(null, new Uint8Array(auth)));
 
-    fetch(schnack_host+'/subscribe', {
+    fetch(host+'/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({publicKey: encodedKey, auth: encodedAuth, endpoint})
@@ -127,7 +127,7 @@ function removeSubscriptionFromServer(endpoint) {
     const encodedKey = btoa(String.fromCharCode.apply(null, new Uint8Array(key)));
     const encodedAuth = btoa(String.fromCharCode.apply(null, new Uint8Array(auth)));
 
-    fetch(schnack_host+'/unsubscribe', {
+    fetch(host+'/unsubscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({publicKey: encodedKey, auth: encodedAuth, endpoint})
