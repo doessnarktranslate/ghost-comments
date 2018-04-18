@@ -1,4 +1,4 @@
-# schnack.js
+# Based on schnack.js
 
 [Schnack](https://dict.leo.org/englisch-deutsch/schnack) is a simple Disqus-like drop-in commenting system written in JavaScript. 
 
@@ -6,7 +6,7 @@
 * [Say hello to Schnack.js](https://www.vis4.net/blog/2017/10/hello-schnack/)
 * Follow [@schnackjs](https://twitter.com/schnackjs) on Twitter
 
-## What the schnack?
+## Features
 
 Features:
 - Tiny! It takes only ~**8 KB!!!** to embed Schnack.
@@ -18,8 +18,6 @@ Features:
 
 ### Quickstart
 
-This is the fastest way to setup *schnack*.
-
 **Requirements**:
 - Node.js (>= v6)
 - npm (>= v5)
@@ -27,12 +25,12 @@ This is the fastest way to setup *schnack*.
 Clone or download schnack:
 
 ```bash
-git clone https://github.com/schn4ck/schnack
+git clone https://github.com/doessnarktranslate/ghost-comments.git
 ```
 
-Go to the schnack directory:
+Go to the ghost-comments directory:
 ```bash
-cd schnack
+cd ghost-comments
 ```
 
 Install dependencies:
@@ -55,47 +53,11 @@ npm start
 Embed in your HTML page:
 
 ```html
-<div class="comments-go-here"></div>
+<div class="post-comments"></div>
 <script src="https://comments.example.com/embed.js"
-    data-schnack-slug="post-slug"
-    data-schnack-target=".comments-go-here">
-</script>
-```
-
-**or** initialize *schnack* programmatically:
-
-```html
-<div id="comments-go-here"></div>
-
-<script src="http://comments.example.com/client.js"></script>
-<script>
-    new Schnack({
-        target: '.comments-go-here',
-        slug: 'post-slug',
-        host: 'http://comments.example.com'
-    });
+    data-schnack-slug="{{slug}}"
+    data-schnack-target=".post-comments">
 </script>
 ```
 
 You will find further information on the [schnack page](https://schnack.cool/).
-
-### Who is behind Schnack?
-
-Schnack is [yet another](https://github.com/gka/canvid/) happy collaboration between [Webkid](https://webkid.io/) and [Gregor Aisch](https://www.vis4.net).
-
-### Who is using Schnack?
-
-Schnack will never track who is using it, so we don't know! If you are a Schnack user, [let us know](https://twitter.com/schnackjs) and we'll add your website here. So far Schnack is being used on:
-
-* https://vis4.net/blog
-* https://blog.datawrapper.de
-* https://blog.webkid.io
-
-### Related projects
-
-This is not a new idea, so there are a few projects that are doing almost the same thing:
-
-* [CoralProject Talk](https://github.com/coralproject/talk) - Node + MongoDB + Redis
-* [Discourse](https://github.com/discourse/discourse) - Ruby on Rails + PostgreSQL + Redis
-* [Commento](https://github.com/adtac/commento) - Go + Node
-* [Isso](https://github.com/posativ/isso/) - Python + SQLite3
