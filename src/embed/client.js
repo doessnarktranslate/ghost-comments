@@ -122,7 +122,7 @@ export default class GhostComments {
                         window.localStorage.setItem(`comment-draft-${slug}`, textarea.value);
                     });
 
-                    replyBtns.forEach((btn) => {
+                    Array.from(replyBtns).forEach((btn) => {
                         btn.addEventListener('click', () => {
                             form.dataset.reply = btn.dataset.replyTo;
                             cancelReplyBtn.style.display = 'inline-block';
@@ -160,7 +160,7 @@ export default class GhostComments {
                         cancelReplyBtn.style.display = 'none';
                     });
 
-                    deleteBtns.forEach((btn) => {
+                    Array.from(deleteBtns).forEach((btn) => {
                         btn.addEventListener('click', () => {
                             const commentId = btn.dataset.commentId;
                             fetch(`${host}/comment/` + commentId, {
@@ -222,7 +222,7 @@ export default class GhostComments {
                             })
                             .then(() => this.refresh());
                     };
-                    document.querySelectorAll('.btn-action').forEach((btn) => {
+                    Array.from(document.querySelectorAll('.btn-action')).forEach((btn) => {
                         btn.addEventListener('click', action);
                     });
                 }

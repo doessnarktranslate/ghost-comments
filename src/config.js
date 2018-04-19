@@ -11,6 +11,7 @@ nconf.argv()
     .env()
     .defaults({
         admins: [1],
+	allow_origin: ['*'],
         schnack_host: `http://localhost`,
         database: {
             comments: 'comments.db',
