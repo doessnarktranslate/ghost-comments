@@ -1,0 +1,263 @@
+.comments-ui p {
+    display: inline-block;
+}
+
+.comments-ui .comment-entry {
+    margin-bottom: 15px;
+}
+
+.comment-awaiting-approval {
+    font-family: inherit;
+    font-style: italic;
+    color: #b4b6bd;
+}
+
+.comment-body {
+    margin: 8px 0px;
+    padding: 0;
+    border-left: 0;
+    overflow: auto;
+    font-size: 0.9em;
+    font-weight: normal;
+}
+
+.comment-body p {
+    margin: 0;
+}
+
+.comment-body>pre {
+    background-color: rgba(38, 168, 237, .2);
+    display: inline;
+}
+
+.comment-form {
+    margin: 10px 0px;
+    text-align: left;
+}
+
+.comment-form .post-body {
+    width: 100%;
+    padding: 5px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+    border: 1px solid rgba(0, 0, 0, .09);
+}
+
+.comment-form .post-body:hover {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+}
+
+textarea::placeholder {
+    color: #b4b6bd;
+}
+
+.comment {
+    margin-bottom: 10px;
+}
+
+.comment-not-approved {
+    background-color: #eee;
+}
+
+.comment-comments .comment-comments .comment-comment {
+    box-shadow: none;
+    border: 0;
+    border-top: 1px solid rgba(0, 0, 0, .09);
+}
+
+.comment-admin-actions {
+    float: right;
+    color: #444;
+}
+
+.admin-settings {
+    float: right;
+    display: inline-block;
+}
+
+.user {
+    font-weight: bold;
+}
+
+.comments-container {
+    font-weight: normal;
+    color: #5D5D5D;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.comments {
+    font-size: 1em;
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+.comments.comment {
+    padding: 0.8em 1em;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+    border: 1px solid rgba(0, 0, 0, .09);
+}
+
+.comments.comment:hover {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+}
+
+.comment-author {
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.comment-date {
+    display: block;
+    font-size: 0.7em;
+    line-height: .9em;
+    margin-bottom: 8px;
+}
+
+.comment-date a {
+    color: #b4b6bd;
+}
+
+.comment-post blockquote::before {
+    content: "";
+}
+
+.no-comments {
+    width: 100%;
+    text-align: center;
+    margin-top: 48px;
+}
+
+.comment-formatting-help {
+    font-size: small;
+    float: right;
+}
+
+ul.comments {
+    margin: 0;
+}
+
+
+/* Comment Actions */
+
+.btn-post-comment,
+.btn-comment-reply,
+.btn-comment-delete {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.comment-user-actions {
+    margin-bottom: 10px;
+    text-align: right;
+}
+
+
+/* Admin Actions */
+
+.user-admin-actions {
+    float: right;
+}
+
+.btn-action {
+    font-size: .75em;
+    padding: 6px 8px 4px 8px;
+}
+
+.comment-action-icon-approve::before {
+    font: normal normal normal 16px/1 ico-dst;
+    content: "\f00c";
+}
+
+.comment-action-icon-reject::before {
+    font: normal normal normal 16px/1 ico-dst;
+    content: "\f00d";
+}
+
+
+/* Login */
+
+.signin {
+    display: block;
+    margin-bottom: 25px;
+    width: 100%;
+    border: solid 1px;
+    padding: 6px 2px 6px 10px;
+}
+
+.signin .signin-text {
+    font-family: Raleway, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+}
+
+.signin .signin-providers {
+    display: inline-block;
+    float: right;
+}
+
+.login-status {
+    font-family: Raleway, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    margin-bottom: 10px;
+}
+
+@media only screen and (max-width: 500px) {
+    .commenting-as-label {
+        display: none;
+    }
+}
+
+.signin-provider,
+.signin-provider:visited,
+.signin-provider:active,
+.signin-provider:focus {
+    font-family: Raleway, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background-color: rgb(224, 224, 224);
+    border: none;
+    text-align: center;
+    display: inline-block;
+    font-size: 0;
+    padding: 6px 8px;
+    margin: 0 5px 5px 0;
+    color: rgb(119, 119, 119);
+}
+
+.signin-provider:hover {
+    background-color: rgb(255, 72, 71);
+    color: #fff;
+}
+
+.signin-icon-twitter::before {
+    font: normal normal normal 16px/1 ico-dst;
+    font-style: normal;
+    content: "\f099";
+}
+
+.signin-icon-google::before {
+    font: normal normal normal 16px/1 ico-dst;
+    font-style: normal;
+    content: "\f1a0";
+}
+
+.signin-icon-github::before {
+    font: normal normal normal 16px/1 ico-dst;
+    font-style: normal;
+    content: "\f09b";
+}
+
+.signin-icon-facebook::before {
+    font: normal normal normal 16px/1 ico-dst;
+    font-style: normal;
+    content: "\f09a";
+}
+
+.signin-icon-yahoo::before {
+    font: normal normal normal 16px/1 ico-dst;
+    font-style: normal;
+    content: "\f19e";
+}
+
+.signin-icon-amazon::before {
+    font: normal normal normal 16px/1 ico-dst;
+    font-style: normal;
+    content: "\f270";
+}
