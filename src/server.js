@@ -20,7 +20,7 @@ const {
     checkOrigin,
     checkValidComment,
     getSchnackDomain
- } = require('./helper');
+} = require('./helper');
 
 const config = require('./config');
 
@@ -129,6 +129,9 @@ function run(db) {
 
             db.all(query, args, (err, row) => {
                 if (error(err, request, reply)) return;
+                reply.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+                reply.setHeader("Pragma", "no-cache");
+                reply.setHeader("Expires", 0);
                 reply.send({
                     slug: slug,
                     count: row[0].count
@@ -136,27 +139,27 @@ function run(db) {
             });
         } else {
 
-        const user = getUser(request);
-        const providers = user ? null : auth.providers;
+            const user = getUser(request);
+            const providers = user ? null : auth.providers;
 
-        let query = queries.get_comments;
-        let args = [slug, user ? user.id : -1];
+            let query = queries.get_comments;
+            let args = [slug, user ? user.id : -1];
 
-        if (isAdmin(user)) {
-            user.admin = true;
-            query = queries.admin_get_comments;
-            args.length = 1;
-        }
+            if (isAdmin(user)) {
+                user.admin = true;
+                query = queries.admin_get_comments;
+                args.length = 1;
+            }
 
-        const date_format = config.get('date_format');        
-        db.all(query, args, (err, comments) => {
-            if (error(err, request, reply)) return;
-            comments.forEach((c) => {
-                const m = moment.utc(c.created_at);
-                c.created_at_s = date_format ? m.format(date_format) : m.fromNow();
-                c.comment = marked(c.comment.trim());
-                c.author_url = auth.getAuthorUrl(c);
-            });
+            const date_format = config.get('date_format');
+            db.all(query, args, (err, comments) => {
+                if (error(err, request, reply)) return;
+                comments.forEach((c) => {
+                    const m = moment.utc(c.created_at);
+                    c.created_at_s = date_format ? m.format(date_format) : m.fromNow();
+                    c.comment = marked(c.comment.trim());
+                    c.author_url = auth.getAuthorUrl(c);
+                });
                 reply.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
                 reply.setHeader("Pragma", "no-cache");
                 reply.setHeader("Expires", 0);
@@ -166,7 +169,7 @@ function run(db) {
                     slug,
                     comments
                 });
-        });
+            });
         }
     });
 
@@ -198,17 +201,26 @@ function run(db) {
                 reason: err
             });
             let stmt = db
-            .prepare(queries.insert, [user.id, slug, comment, replyTo ? +replyTo : null])
-            .run(err => {
-                if (err) return error(err, request, reply);
-                if (!user.blocked && !user.trusted) {
+                .prepare(queries.insert, [user.id, slug, comment, replyTo ? +replyTo : null])
+                .run(err => {
+                    if (err) return error(err, request, reply);
+                    if (!user.blocked && !user.trusted) {
                         awaiting_moderation.push({
                             slug
                         });
-                }
-                commentEvents.emit('new-comment', { user: user, slug, id: stmt.lastID, comment, replyTo });
-                reply.send({ status: 'ok', id: stmt.lastID });
-            });
+                    }
+                    commentEvents.emit('new-comment', {
+                        user: user,
+                        slug,
+                        id: stmt.lastID,
+                        comment,
+                        replyTo
+                    });
+                    reply.send({
+                        status: 'ok',
+                        id: stmt.lastID
+                    });
+                });
         });
     });
 
@@ -251,8 +263,8 @@ function run(db) {
             feed.item({
                 title: `New comment on "${row.slug}"`,
                 description: `A new comment on "${row.slug}" is awaiting moderation`,
-                url: row.slug+'/'+row.id,
-                guid: row.slug+'/'+row.id,
+                url: row.slug + '/' + row.id,
+                guid: row.slug + '/' + row.id,
                 date: row.created_at
             });
         }, (err) => {

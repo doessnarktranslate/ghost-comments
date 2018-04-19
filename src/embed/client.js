@@ -2,8 +2,6 @@ import fetch from 'unfetch';
 import main_template from './main.jst.html';
 import comments_template from './comments.jst.html';
 
-//const parseurl = require('parseurl');
-
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
@@ -15,7 +13,6 @@ export default class GhostComments {
         this.firstLoad = true;
 
         var url = new URL(options.host);
-        //        const url = parseurl(options.host);
 
         if (url.hostname !== 'localhost') {
             document.domain = url.hostname.split('.').slice(1).join('.');
@@ -35,7 +32,9 @@ export default class GhostComments {
         fetch(endpoint, {
                 credentials: 'include',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'pragma': 'no-cache',
+                    'cache-control': 'no-store'
                 }
             })
             .then(r => r.json())
@@ -67,6 +66,7 @@ export default class GhostComments {
                         const body = textarea.value;
                         fetch(endpoint, {
                                 credentials: 'include',
+                                cache: 'no-cache',
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -133,6 +133,7 @@ export default class GhostComments {
                     updateDisplayNameBtn.addEventListener('click', () => {
                         fetch(`${host}/user/name`, {
                                 credentials: 'include',
+                                cache: 'no-cache',
                                 method: 'PUT',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -165,6 +166,7 @@ export default class GhostComments {
                             const commentId = btn.dataset.commentId;
                             fetch(`${host}/comment/` + commentId, {
                                     credentials: 'include',
+                                    cache: 'no-cache',
                                     method: 'DELETE'
                                 })
                                 .then(() => this.refresh());
@@ -176,7 +178,8 @@ export default class GhostComments {
                     if (signout) signout.addEventListener('click', (e) => {
                         e.preventDefault();
                         fetch(`${host}/signout`, {
-                                credentials: 'include'
+                                credentials: 'include',
+                                cache: 'no-cache'
                             })
                             .then(() => this.refresh());
                     });
@@ -209,6 +212,7 @@ export default class GhostComments {
                         fetch(`${host}/${data.class}/${data.target}/${data.action}`, {
                                 credentials: 'include',
                                 method: 'POST',
+                                cache: 'no-cache',
                                 headers: {
                                     'Content-Type': 'application/json'
                                 },
