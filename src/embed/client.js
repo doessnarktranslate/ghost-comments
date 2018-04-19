@@ -165,10 +165,7 @@ export default class GhostComments {
                             const commentId = btn.dataset.commentId;
                             fetch(`${host}/comment/` + commentId, {
                                     credentials: 'include',
-                                    method: 'DELETE',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
+                                    method: 'DELETE'
                                 })
                                 .then(() => this.refresh());
                         });
@@ -179,10 +176,7 @@ export default class GhostComments {
                     if (signout) signout.addEventListener('click', (e) => {
                         e.preventDefault();
                         fetch(`${host}/signout`, {
-                                credentials: 'include',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
+                                credentials: 'include'
                             })
                             .then(() => this.refresh());
                     });
@@ -218,7 +212,7 @@ export default class GhostComments {
                                 headers: {
                                     'Content-Type': 'application/json'
                                 },
-                                body: ''
+                                body: '{}'
                             })
                             .then(() => this.refresh());
                     };
