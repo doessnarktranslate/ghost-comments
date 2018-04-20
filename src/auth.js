@@ -36,7 +36,7 @@ function init(app, db, domain) {
             var trusted = trustConfig &&
                     trustConfig[user.provider] &&
                     trustConfig[user.provider].indexOf(user.id) > -1 ? 1 : 0;
-            const c_args = [user.provider, user.id, user.displayName, user.username || user.displayName, trusted];
+            const c_args = [user.provider, user.id, user.displayName, user.username || user.displayName, trusted, user.photos[0].value || ''];
             db.run(queries.create_user, c_args, (err, res) => {
                 if (err) return console.error(err);
                 db.get(queries.find_user, [user.provider, user.id], (err, row) => {
@@ -54,29 +54,6 @@ function init(app, db, domain) {
         });
     });
 
-    // twitter auth
-    if (authConfig.twitter) {
-        providers.push({ id: 'twitter', name: 'Twitter' });
-        passport.use(new TwitterStrategy({
-            consumerKey: authConfig.twitter.consumer_key,
-            consumerSecret: authConfig.twitter.consumer_secret,
-            callbackURL: `${host}/auth/twitter/callback`
-        }, (token, tokenSecret, profile, done) => {
-            done(null, profile);
-        }));
-
-        app.get('/auth/twitter',
-            passport.authenticate('twitter')
-        );
-
-        app.get('/auth/twitter/callback',
-            passport.authenticate('twitter', {
-                failureRedirect: '/login'
-            }), (request, reply) => {
-                reply.redirect('/success');
-            }
-        );
-    }
 
     // google oauth
     if (authConfig.google) {
@@ -97,6 +74,30 @@ function init(app, db, domain) {
 
         app.get('/auth/google/callback',
             passport.authenticate('google', {
+                failureRedirect: '/login'
+            }), (request, reply) => {
+                reply.redirect('/success');
+            }
+        );
+    }
+
+    // twitter auth
+    if (authConfig.twitter) {
+        providers.push({ id: 'twitter', name: 'Twitter' });
+        passport.use(new TwitterStrategy({
+            consumerKey: authConfig.twitter.consumer_key,
+            consumerSecret: authConfig.twitter.consumer_secret,
+            callbackURL: `${host}/auth/twitter/callback`
+        }, (token, tokenSecret, profile, done) => {
+            done(null, profile);
+        }));
+
+        app.get('/auth/twitter',
+            passport.authenticate('twitter')
+        );
+
+        app.get('/auth/twitter/callback',
+            passport.authenticate('twitter', {
                 failureRedirect: '/login'
             }), (request, reply) => {
                 reply.redirect('/success');
