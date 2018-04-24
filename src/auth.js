@@ -30,8 +30,19 @@ function init(app, db, domain) {
 
     passport.serializeUser((user, done) => {
         db.get(queries.find_user, [user.provider, user.id], (err, row) => {
-            if (row) return done(null, row); // welcome back
-            // nice to meet you, new user!
+            if (row) {
+		// welcome back
+		const u_args = [user.photos[0].value || '', user.provider, user.id];
+		db.run(queries.update_user, u_args, (err, res) => {
+		    if (err) return console.error(err);
+		    db.get(queries.find_user, [user.provider, user.id], (err, row) => {
+			if (row) return done(null, row);
+			console.error('no user found after update');
+		    });
+		});
+            }
+
+	    // nice to meet you, new user!
             // check if id shows up in auto-trust config
             var trusted = trustConfig &&
                     trustConfig[user.provider] &&

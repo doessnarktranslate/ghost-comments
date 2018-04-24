@@ -60,6 +60,8 @@ module.exports = {
        created_at, trusted, blocked, profile_image_url)
       VALUES (?, ?, ?, ?, datetime(), ?, 0, ?)`,
 
+    update_user: `UPDATE user SET profile_image_url = ? WHERE provider = ? AND provider_id = ?`,
+
     set_settings: `INSERT OR REPLACE INTO setting (name, active)
       VALUES (?, ?)`,
 
