@@ -6,6 +6,13 @@
 * [Say hello to Schnack.js](https://www.vis4.net/blog/2017/10/hello-schnack/)
 * Follow [@schnackjs](https://twitter.com/schnackjs) on Twitter
 
+## Added Features
+
+* Ability for moderators to delete messages
+* Ability for commentor to change their display name
+* Display profile image from OAuth providers
+* Mechanism for retrieving comment count for post
+
 ## Features
 
 Features:
