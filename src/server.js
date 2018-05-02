@@ -256,7 +256,7 @@ function run(db) {
     app.get('/feed', (request, reply) => {
         var feed = new RSS({
             title: 'Awaiting moderation',
-            site_url: config.allow_origin[0] // @FIXME
+            site_url: getSchnackDomain()
         });
         db.each(queries.awaiting_moderation, (err, row) => {
             if (err) console.error(err.message);
