@@ -156,7 +156,8 @@ function run(db) {
                 if (error(err, request, reply)) return;
                 comments.forEach((c) => {
                     const m = moment.utc(c.created_at);
-                    c.created_at_s = date_format ? m.format(date_format) : m.fromNow();
+                    m_local = m.local(); // convert UTC time to (server's) local time
+                    c.created_at_s = date_format ? m_local.format(date_format) : m_local.fromNow(); // return formatted local time
                     c.comment = marked(c.comment.trim());
                     c.author_url = auth.getAuthorUrl(c);
                 });
